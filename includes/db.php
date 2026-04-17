@@ -1,12 +1,12 @@
 <?php
+require_once __DIR__ . '/config.php';
 $dbPath = __DIR__ . '/../data/attendance.db';
-
 // Auto-create DB & tables if missing
 if (!file_exists($dbPath)) {
     try {
         $pdo = new PDO("sqlite:$dbPath");
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
+
         $pdo->exec("
             CREATE TABLE IF NOT EXISTS students (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +27,7 @@ if (!file_exists($dbPath)) {
                 FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE CASCADE
             );
         ");
-        
+
         // Seed 3 sample students for testing
         $stmt = $pdo->prepare("INSERT OR IGNORE INTO students (name, birthday, subject, grade) VALUES (?, ?, ?, ?)");
         $stmt->execute(['Alice Johnson', '2008-05-12', 'Computer Science', '10th']);
@@ -43,7 +43,9 @@ try {
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec("PRAGMA journal_mode = WAL;");
+    $pdo->exec("PRAGMA synchronous = NORMAL;");
+    $pdo->exec("PRAGMA foreign_keys = ON;");
 } catch (PDOException $e) {
     die("DB Connection Failed: " . $e->getMessage());
 }
-?>
